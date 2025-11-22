@@ -69,6 +69,14 @@ func initSampleData() {
 	nextID = 3
 }
 
+// validateUser checks if a user has valid name and email
+func validateUser(user User) error {
+	if user.Name == "" || user.Email == "" {
+		return fmt.Errorf("name and email are required")
+	}
+	return nil
+}
+
 // healthCheck returns the health status of the API
 func healthCheck(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
@@ -146,12 +154,12 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if user.Name == "" || user.Email == "" {
+	if err := validateUser(user); err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(Response{
 			Success: false,
-			Message: "Name and email are required",
+			Message: err.Error(),
 		})
 		return
 	}
@@ -192,6 +200,16 @@ func updateUser(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(Response{
 			Success: false,
 			Message: "Invalid request body",
+		})
+		return
+	}
+
+	if err := validateUser(updatedUser); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Response{
+			Success: false,
+			Message: err.Error(),
 		})
 		return
 	}
